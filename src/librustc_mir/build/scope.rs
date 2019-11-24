@@ -353,6 +353,7 @@ impl DropTree {
                 DropKind::Value => {
                     let terminator = TerminatorKind::Drop {
                         target: blocks[drop_data.1].unwrap(),
+                        flag: None,
                         // The caller will handle this if needed.
                         unwind: None,
                         location: drop_data.0.local.into(),
@@ -1251,6 +1252,7 @@ fn build_scope_drops<'tcx>(
                 let next = cfg.start_new_block();
                 cfg.terminate(block, source_info, TerminatorKind::Drop {
                     location: local.into(),
+                    flag: None,
                     target: next,
                     unwind: None
                 });

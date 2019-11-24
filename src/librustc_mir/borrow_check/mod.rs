@@ -632,6 +632,7 @@ impl<'cx, 'tcx> DataflowResultsConsumer<'cx, 'tcx> for MirBorrowckCtxt<'cx, 'tcx
             }
             TerminatorKind::Drop {
                 location: ref drop_place,
+                flag: _,
                 target: _,
                 unwind: _,
             } => {

@@ -588,7 +588,13 @@ where
             fn_end,
             |builder| {
                 Some(builder.in_scope(arg_scope_s, LintLevel::Inherited, |builder| {
-                    builder.args_and_body(START_BLOCK, fn_def_id, &arguments, arg_scope, &body.value)
+                    builder.args_and_body(
+                        START_BLOCK,
+                        fn_def_id,
+                        &arguments,
+                        arg_scope,
+                        &body.value,
+                    )
                 }))
             },
         ));

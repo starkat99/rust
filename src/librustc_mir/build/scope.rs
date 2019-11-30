@@ -89,7 +89,6 @@ use rustc::mir::*;
 use syntax_pos::{DUMMY_SP, Span};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_index::vec::{IndexVec, Idx};
-use rustc::hir::GeneratorKind;
 
 #[derive(Debug)]
 pub struct Scopes<'tcx> {
@@ -794,7 +793,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
             }
         };
 
-        let invalidate_caches = needs_drop || self.is_generator;
+        let invalidate_caches = needs_drop || self.generator_kind.is_some();
         for scope in self.scopes.scopes.iter_mut().rev() {
             if invalidate_caches {
                 scope.invalidate_cache();
@@ -956,7 +955,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
                     // Manually drop the condition on both branches.
                     let top_scope = self.scopes.scopes.last_mut().unwrap();
                     let top_drop_data = top_scope.drops.pop().unwrap();
-                    if self.is_generator {
+                    if self.generator_kind.is_some() {
                         top_scope.invalidate_cache();
                     }
 
@@ -994,7 +993,7 @@ impl<'a, 'tcx> Builder<'a, 'tcx> {
     }
 
     fn diverge_cleanup(&mut self) -> DropIdx {
-        let is_generator = self.is_generator;
+        let is_generator = self.generator_kind.is_some();
         let (uncached_scope, mut cached_drop) = self.scopes.scopes.iter().enumerate().rev()
             .find_map(|(scope_idx, scope)| {
                 scope.cached_unwind_block.map(|cached_block| (scope_idx + 1, cached_block))
@@ -1295,7 +1294,7 @@ impl<'a, 'tcx: 'a> Builder<'a, 'tcx> {
             for (drop_idx, drop_data) in drops.drops.iter_enumerated().skip(1) {
                 match drop_data.0.kind {
                     DropKind::Storage => {
-                        if self.is_generator {
+                        if self.generator_kind.is_some() {
                             let unwind_drop = self
                                 .scopes
                                 .unwind_drops
@@ -1323,7 +1322,7 @@ impl<'a, 'tcx: 'a> Builder<'a, 'tcx> {
     }
 
     crate fn build_drop_trees(&mut self, should_abort: bool) {
-        if self.is_generator {
+        if self.generator_kind.is_some() {
             self.build_generator_drop_trees(
                 should_abort,
             );
